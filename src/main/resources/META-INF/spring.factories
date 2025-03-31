@@ -1,0 +1,3 @@
+org.springframework.boot.autoconfigure.EnableAutoConfiguration=\
+com.example.global.config.SecurityConfig,\
+com.example.global.config.jwt.CorsMvcConfig
