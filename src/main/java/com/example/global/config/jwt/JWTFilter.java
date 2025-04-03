@@ -2,6 +2,7 @@ package com.example.global.config.jwt;
 
 import com.example.global.entity.BasicUser;
 import com.example.global.entity.BasicUserDetails;
+import com.example.global.entity.BasicUserImpl;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -53,23 +54,10 @@ public class JWTFilter extends OncePerRequestFilter {
         //토큰에서 username과 role 획득
         String username = jwtUtil.getUsername(token);
         String role = jwtUtil.getRole(token);
+        String password = "tmppassword"; // 토큰 기반이므로 임시 값 사용
 
-        String password = "tmppassword";
-
-        BasicUser basicUser = new BasicUser() {
-            @Override
-            public String getUsername() {
-                return username;
-            }
-            @Override
-            public String getPassword() {
-                return password;
-            }
-            @Override
-            public String getRole() {
-                return role;
-            }
-        };
+        // BasicUserImpl을 이용하여 BasicUser 객체 생성
+        BasicUser basicUser = new BasicUserImpl(username, password, role);
 
         BasicUserDetails userDetails = new BasicUserDetails(basicUser);
         UsernamePasswordAuthenticationToken authToken =
