@@ -1,6 +1,6 @@
 package com.example.global.config.jwt;
 
-import com.example.global.entity.CustomUserDetails;
+import com.example.global.entity.BasicUserDetails;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -17,7 +17,6 @@ import java.util.Iterator;
 public class LoginFilter extends UsernamePasswordAuthenticationFilter {
 
     private final AuthenticationManager authenticationManager;
-    //JWTUtil 주입
     private final JWTUtil jwtUtil;
 
     public LoginFilter(AuthenticationManager authenticationManager, JWTUtil jwtUtil) {
@@ -45,18 +44,19 @@ public class LoginFilter extends UsernamePasswordAuthenticationFilter {
     protected void successfulAuthentication(HttpServletRequest request, HttpServletResponse response, FilterChain chain, Authentication authentication) {
 
         //UserDetailsS
-        CustomUserDetails customUserDetails = (CustomUserDetails) authentication.getPrincipal();
+        BasicUserDetails basicUserDetails = (BasicUserDetails) authentication.getPrincipal();
 
-        String username = customUserDetails.getUsername();
+        String username = basicUserDetails.getUsername();
 
         Collection<? extends GrantedAuthority> authorities = authentication.getAuthorities();
         Iterator<? extends GrantedAuthority> iterator = authorities.iterator();
-        GrantedAuthority auth = iterator.next();
+        GrantedAuthority authority = iterator.next();
+        String role = authority.getAuthority();
 
-        String role = auth.getAuthority();
-
+        // JWT 생성 (여기서는 3시간 유효 토큰 예시)
         String token = jwtUtil.createJwt(username, role, 1000 * 60 * 60 * 3L);
 
+        // 응답 헤더에 JWT 추가
         response.addHeader("Authorization", "Bearer " + token);
     }
 

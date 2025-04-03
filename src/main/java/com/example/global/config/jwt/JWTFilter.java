@@ -1,13 +1,12 @@
 package com.example.global.config.jwt;
 
-import com.example.global.entity.CustomUserDetails;
-import com.example.global.entity.User;
+import com.example.global.entity.BasicUser;
+import com.example.global.entity.BasicUserDetails;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.filter.OncePerRequestFilter;
 
@@ -45,8 +44,6 @@ public class JWTFilter extends OncePerRequestFilter {
 
         //토큰 소멸 시간 검증
         if (jwtUtil.isExpired(token)) {
-
-            System.out.println("token expired");
             filterChain.doFilter(request, response);
 
             //조건이 해당되면 메소드 종료 (필수)
@@ -57,19 +54,26 @@ public class JWTFilter extends OncePerRequestFilter {
         String username = jwtUtil.getUsername(token);
         String role = jwtUtil.getRole(token);
 
-        //userEntity를 생성하여 값 set
-        User user = User.builder()
-                        .username(username)
-                        .password("tmppassword")
-                        .role(role)
-                        .build();
+        String password = "tmppassword";
 
-        //UserDetails에 회원 정보 객체 담기
-        CustomUserDetails customUserDetails = new CustomUserDetails(user);
+        BasicUser basicUser = new BasicUser() {
+            @Override
+            public String getUsername() {
+                return username;
+            }
+            @Override
+            public String getPassword() {
+                return password;
+            }
+            @Override
+            public String getRole() {
+                return role;
+            }
+        };
 
-        //스프링 시큐리티 인증 토큰 생성
-        Authentication authToken = new UsernamePasswordAuthenticationToken(customUserDetails, null, customUserDetails.getAuthorities());
-        //세션에 사용자 등록
+        BasicUserDetails userDetails = new BasicUserDetails(basicUser);
+        UsernamePasswordAuthenticationToken authToken =
+                new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
         SecurityContextHolder.getContext().setAuthentication(authToken);
 
         filterChain.doFilter(request, response);
